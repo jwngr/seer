@@ -1,15 +1,19 @@
 /************/
 /*  COLORS  */
 /************/
-$green: rgba(163, 224, 39, 0.3);
-$yellowGreen: rgba(190, 204, 8, 0.3);
-$yellowOrange: rgba(252, 245, 78, 0.3);
-$orange: rgba(254, 176, 0, 0.3);
-$redOrange: rgba(235, 66, 0, 0.3);
-$red: rgba(254, 70, 77, 0.3);
-$deepRed: rgba(131, 16, 16, 0.6);
-$gray: rgba(100, 100, 100, 0.3);
+$gray: rgba(170, 170, 170, 0.3);
+$lightBlue: #0f97f9;
+$deepPurple: #0D1D6E;
 
+// Freshness colors
+$fresh: rgba(59, 226, 6, 0.3);
+$browning: rgba(147, 214, 27, 0.3);
+$moldy: rgba(228, 255, 32, 0.3);
+$stale: rgba(255, 163, 0, 0.3);
+$rotten: rgba(235, 66, 0, 0.3);
+$putrid: rgba(216, 29, 22, 0.4);
+$dead: rgba(165, 92, 92, 0.5);
+$freshnessColors: $fresh, $browning, $moldy, $stale, $rotten, $putrid, $dead;
 
 /***********/
 /*  FONTS  */
@@ -37,6 +41,32 @@ body {
   background-image: url("../images/halftone.png");
 }
 
+#freshnessScale {
+  position: fixed;
+  top: 30px;
+  left: 50px;
+  text-align: center;
+  font-family: "Norwester";
+  font-size: 16px;
+
+  p {
+    position: static;
+    margin: 0 0 10px -10px;
+  }
+
+  div {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+  }
+}
+
+@for $i from 1 through length($freshnessColors) {
+  .freshnessLevel#{$i} {
+    background: nth($freshnessColors, $i);
+    border: solid 3px darken(nth($freshnessColors, $i), 50%);
+  }
+}
 
 /*********************/
 /*  REPOS CONTAINER  */
@@ -63,7 +93,7 @@ body {
 
     select {
       display: block;
-      background: $orange;
+      background: $stale;
       width: 200px;
       height: 35px;
       font-size: 20px;
@@ -89,7 +119,6 @@ body {
 /*  REPO  */
 /**********/
 .repo {
-  border: solid 3px black;
   margin: 0 auto 20px auto;
   width: 800px;
 
@@ -98,7 +127,7 @@ body {
     font-family: "Norwester";
     margin: 10px;
     a {
-      color: #0f97f9;
+      color: $lightBlue;
       text-decoration: none;
     }
   }
@@ -108,36 +137,9 @@ body {
     margin: 10px;
   }
 
-  &.fresh {
-    background: $green;
-  }
-
-  &.browning {
-    background: $yellowGreen;
-  }
-
-  &.moldy {
-    background: $yellowOrange;
-  }
-
-  &.stale {
-    background: $orange;
-  }
-
-  &.rotten {
-    background: $redOrange;
-  }
-
-  &.putrid {
-    background: $red;
-  }
-
-  &.dead {
-    background: $deepRed;
-  }
-
   &.issuesDisabled {
     background: $gray;
+    border: solid 3px darken($gray, 50%);
   }
 }
 
@@ -154,5 +156,9 @@ body {
 
   .issue {
     margin-left: 42px;
+
+    a {
+      color: $deepPurple;
+    }
   }
 }

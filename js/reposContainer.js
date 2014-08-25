@@ -8,13 +8,15 @@ var ReposContainer = React.createClass({
         freshness: "all",
         issues: "all",
         pullRequests: "all"
-      }
+      },
+      organization: "firebase",
+      organizaitonPrintName: "Firebase"
     };
   },
 
   componentWillMount: function() {
     var _this = this;
-    $.getJSON("https://api.github.com/orgs/firebase/repos", {
+    $.getJSON("https://api.github.com/orgs/" + this.state.organization + "/repos", {
       access_token: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d",
       per_page: 100
     }, function(repos) {
@@ -69,18 +71,33 @@ var ReposContainer = React.createClass({
       return <Repo repo={ repo } filters={ this.state.filters } key={ repo.id } />;
     }.bind(this));
 
+    console.log(repos);
+
     // Display a loading message if we haven't retrieved any repos yet
     if (repos.length === 0) {
       if (this.state.reposLoaded) {
         repos = <p id="mainReposMessage">No repos match the chosen filters.</p>;
       } else {
-       repos = <p id="mainReposMessage">Loading issues for Firebase repos...</p>;
+       repos = <p id="mainReposMessage">Loading issues for { this.state.organizaitonPrintName } repos...</p>;
       }
+    }
+
+    // Freshness scale
+
+    var freshnessScale = [];
+    for (var i = 0; i < 7; ++i) {
+      var className = "freshnessLevel" + (i + 1);
+      freshnessScale.push(<div className={ className }>&nbsp;</div>);
     }
 
     return (
       <div>
-        <p id="title">Firebase GitHub Issues</p>
+        <p id="title">{ this.state.organizaitonPrintName } Seer</p>
+
+        <div id="freshnessScale">
+          <p>Freshness<br />Scale</p>
+          { freshnessScale }
+        </div>
 
         <div id="filters">
           <div>

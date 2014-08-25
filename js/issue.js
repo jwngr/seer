@@ -13,7 +13,7 @@ var Issue = React.createClass({
 
     // Determine what the timestamp text should say
     var timestamp = "created " + timeSinceCreated + "; ";
-    if (timeSinceUpdated === timeSinceCreated) {
+    if (issue.created_at === issue.updated_at) {
       timestamp += "never updated";
     } else {
       timestamp += "updated " + timeSinceUpdated;

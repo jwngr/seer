@@ -5,8 +5,8 @@ var Repo = React.createClass({
       issues: [],
       pullRequests: [],
       freshnessLevels: [ "fresh", "browning", "moldy", "stale", "rotten", "putrid", "dead" ],
-      freshness: "",
-      freshnessScore: 0
+      freshnessLevel: -1,
+      freshnessScore: -1
     };
   },
 
@@ -28,7 +28,7 @@ var Repo = React.createClass({
         _this.setState({
           issues: issues,
           pullRequests: pullRequests,
-          freshness: _this.getFreshness(issues, pullRequests)
+          freshnessLevel: _this.getFreshnessLevel(issues, pullRequests)
         });
       });
     } else {
@@ -39,16 +39,23 @@ var Repo = React.createClass({
   },
 
   passesFilters: function() {
+    var repo = this.props.repo;
+
     // Freshness filter
-    var repoFreshnessIndex = this.state.freshnessLevels.indexOf(this.state.freshness);
-    var filterFreshnessIndex = this.state.freshnessLevels.indexOf(this.props.filters.freshness);
-    var passesFreshnessFilter = (repoFreshnessIndex >= filterFreshnessIndex);
+    var passesFreshnessFilter;
+    if (repo.has_issues) {
+      var repoFreshnessIndex = this.state.freshnessLevel - 1;
+      var filterFreshnessIndex = this.state.freshnessLevels.indexOf(this.props.filters.freshness);
+      passesFreshnessFilter = (repoFreshnessIndex >= filterFreshnessIndex);
+    } else {
+      passesFreshnessFilter = true;
+    }
 
     // Issues filter
     var passesIssuesFilter = false;
     if (this.props.filters.issues === "all") {
       passesIssuesFilter = true;
-    } else if (this.props.repo.has_issues) {
+    } else if (repo.has_issues) {
       if (this.state.issues.length === 0) {
         passesIssuesFilter = (this.props.filters.issues === "none");
       } else {
@@ -71,7 +78,7 @@ var Repo = React.createClass({
     return (passesFreshnessFilter && passesIssuesFilter && passesPullRequestsFilter);
   },
 
-  getFreshness: function(issues, pullRequests) {
+  getFreshnessLevel: function(issues, pullRequests) {
     // Get the average number of days since the issues and pull requests were last updated
     var averageDaysSinceIssuesUpdated = this.getAverageDaysSinceUpdated(issues);
     var averageDaysSincePullRequestsUpdated = this.getAverageDaysSinceUpdated(pullRequests);
@@ -81,24 +88,24 @@ var Repo = React.createClass({
     });
 
     // Get the freshness
-    var freshness;
+    var freshnessLevel;
     if (averageDaysSinceIssuesUpdated <= 3) {
-      freshness = this.state.freshnessLevels[0];
+      freshnessLevel = 1;
     } else if (averageDaysSinceIssuesUpdated <= 7) {
-      freshness = this.state.freshnessLevels[1];
+      freshnessLevel = 2;
     } else if (averageDaysSinceIssuesUpdated <= 14) {
-      freshness = this.state.freshnessLevels[2];
+      freshnessLevel = 3;
     } else if (averageDaysSinceIssuesUpdated <= 21) {
-      freshness = this.state.freshnessLevels[3];
+      freshnessLevel = 4;
     } else if (averageDaysSinceIssuesUpdated <= 30) {
-      freshness = this.state.freshnessLevels[4];
+      freshnessLevel = 5;
     } else if (averageDaysSinceIssuesUpdated <= 90) {
-      freshness = this.state.freshnessLevels[5];
+      freshnessLevel = 6;
     } else {
-      freshness = this.state.freshnessLevels[6];
+      freshnessLevel = 7;
     }
 
-    return freshness
+    return freshnessLevel;
   },
 
   getAverageDaysSinceUpdated: function(items) {
@@ -126,7 +133,7 @@ var Repo = React.createClass({
   getRepoClasses: function(issues) {
     var classes = "repo ";
     if (this.props.repo.has_issues) {
-      classes += this.state.freshness;
+      classes += "freshnessLevel" + this.state.freshnessLevel;
     } else {
       classes += " issuesDisabled";
     }
