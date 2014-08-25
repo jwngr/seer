@@ -1,0 +1,15 @@
+{
+  "name": "seer",
+  "description": "GitHub issue tracker for Firebase",
+  "version": "1.0.0",
+  "main": "index.html",
+  "license": "MIT",
+  "authors": [
+    "jacobawenger <jacob@firebase.com>"
+  ],
+  "dependencies": {
+    "react": "~0.11.1",
+    "moment": "~2.8.1"
+  },
+  "private": true
+}

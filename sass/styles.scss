@@ -1,0 +1,158 @@
+/************/
+/*  COLORS  */
+/************/
+$green: rgba(163, 224, 39, 0.3);
+$yellowGreen: rgba(190, 204, 8, 0.3);
+$yellowOrange: rgba(252, 245, 78, 0.3);
+$orange: rgba(254, 176, 0, 0.3);
+$redOrange: rgba(235, 66, 0, 0.3);
+$red: rgba(254, 70, 77, 0.3);
+$deepRed: rgba(131, 16, 16, 0.6);
+$gray: rgba(100, 100, 100, 0.3);
+
+
+/***********/
+/*  FONTS  */
+/***********/
+@font-face {
+  /* Norwester font by Jamie Wilson: http://jamiewilson.io/norwester/ */
+  font-family: "Norwester";
+  src: url("../fonts/norwester.woff");
+}
+
+
+/***************/
+/*  PAGE-WIDE  */
+/***************/
+* {
+  margin: 0px;
+  padding: 0px;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;         /* Opera/IE 8+ */
+}
+
+body {
+  /* Background image from: http://subtlepatterns.com/halftone/ */
+  background-image: url("../images/halftone.png");
+}
+
+
+/*********************/
+/*  REPOS CONTAINER  */
+/*********************/
+#title {
+  text-align: center;
+  font-family: "Norwester";
+  font-weight: bold;
+  font-size: 40px;
+  margin: 20px;
+}
+
+#filters {
+  text-align: center;
+
+  div {
+    display: inline-block;
+    font-family: "Norwester";
+    margin: 0 50px 20px 0;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+
+    select {
+      display: block;
+      background: $orange;
+      width: 200px;
+      height: 35px;
+      font-size: 20px;
+      font-family: Norwester;
+      border: solid 2px black;
+    }
+
+    label {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+  }
+}
+
+#mainReposMessage {
+  font-family: "Helvetica Neue";
+  text-align: center;
+}
+
+
+/**********/
+/*  REPO  */
+/**********/
+.repo {
+  border: solid 3px black;
+  margin: 0 auto 20px auto;
+  width: 800px;
+
+  .repoName {
+    font-size: 22px;
+    font-family: "Norwester";
+    margin: 10px;
+    a {
+      color: #0f97f9;
+      text-decoration: none;
+    }
+  }
+
+  p {
+    font-family: "Helvetica Neue";
+    margin: 10px;
+  }
+
+  &.fresh {
+    background: $green;
+  }
+
+  &.browning {
+    background: $yellowGreen;
+  }
+
+  &.moldy {
+    background: $yellowOrange;
+  }
+
+  &.stale {
+    background: $orange;
+  }
+
+  &.rotten {
+    background: $redOrange;
+  }
+
+  &.putrid {
+    background: $red;
+  }
+
+  &.dead {
+    background: $deepRed;
+  }
+
+  &.issuesDisabled {
+    background: $gray;
+  }
+}
+
+/***********/
+/*  ISSUE  */
+/***********/
+.issues, .pullRequests {
+  font-family: "Helvetica Neue";
+  margin-bottom: 10px;
+
+  p {
+    font-weight: bold;
+  }
+
+  .issue {
+    margin-left: 42px;
+  }
+}
