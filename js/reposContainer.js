@@ -11,7 +11,9 @@ var ReposContainer = React.createClass({
       },
       organization: {
         name: ""
-      }
+      },
+      defaultOrganizationName: "firebase",
+      gitHubPublicAccessToken: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d"
     };
   },
 
@@ -23,7 +25,7 @@ var ReposContainer = React.createClass({
   },
 
   componentWillMount: function() {
-    var organization = this.getQueryStringParameterByName("org") || "firebase";
+    var organization = this.getQueryStringParameterByName("org") || this.state.defaultOrganizationName;
     this.getOrganizationNameAndIssues(organization);
   },
 
@@ -31,7 +33,7 @@ var ReposContainer = React.createClass({
     if (organization !== "") {
       var _this = this;
       $.getJSON("https://api.github.com/orgs/" + organization, {
-        access_token: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d"
+        access_token: this.state.gitHubPublicAccessToken
       }, function(organizationData) {
         _this.setState({
           organization: {
