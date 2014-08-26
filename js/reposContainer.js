@@ -9,14 +9,46 @@ var ReposContainer = React.createClass({
         issues: "all",
         pullRequests: "all"
       },
-      organization: "firebase",
-      organizaitonPrintName: "Firebase"
+      organization: {
+        login: "",
+        name: ""
+      }
     };
   },
 
+  getQueryStringParameterByName: function(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+    var results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " ").replace(/\//, ""));
+  },
+
   componentWillMount: function() {
+    var organization = this.getQueryStringParameterByName("org") || "firebase";
+    this.getOrganizationNameAndIssues(organization);
+  },
+
+  getOrganizationNameAndIssues: function(organization) {
+    if (organization !== "") {
+      var _this = this;
+      $.getJSON("https://api.github.com/orgs/" + organization, {
+        access_token: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d"
+      }, function(organizationData) {
+        _this.setState({
+          organization: {
+            login: organization,
+            name: organizationData.name
+          }
+        });
+
+        _this.getIssuesForOrganization(organization);
+      });
+    }
+  },
+
+  getIssuesForOrganization: function(organization) {
     var _this = this;
-    $.getJSON("https://api.github.com/orgs/" + this.state.organization + "/repos", {
+    $.getJSON("https://api.github.com/orgs/" + organization + "/repos", {
       access_token: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d",
       per_page: 100
     }, function(repos) {
@@ -71,14 +103,12 @@ var ReposContainer = React.createClass({
       return <Repo repo={ repo } filters={ this.state.filters } key={ repo.id } />;
     }.bind(this));
 
-    console.log(repos);
-
     // Display a loading message if we haven't retrieved any repos yet
     if (repos.length === 0) {
       if (this.state.reposLoaded) {
         repos = <p id="mainReposMessage">No repos match the chosen filters.</p>;
       } else {
-       repos = <p id="mainReposMessage">Loading issues for { this.state.organizaitonPrintName } repos...</p>;
+       repos = <p id="mainReposMessage">Loading issues for { this.state.organization.name } repos...</p>;
       }
     }
 
@@ -87,12 +117,12 @@ var ReposContainer = React.createClass({
     var freshnessScale = [];
     for (var i = 0; i < 7; ++i) {
       var className = "freshnessLevel" + (i + 1);
-      freshnessScale.push(<div className={ className }>&nbsp;</div>);
+      freshnessScale.push(<div className={ className } key={ i }>&nbsp;</div>);
     }
 
     return (
       <div>
-        <p id="title">{ this.state.organizaitonPrintName } Seer</p>
+        <p id="title">{ this.state.organization.name } Seer</p>
 
         <div id="freshnessScale">
           <p>Freshness<br />Scale</p>
