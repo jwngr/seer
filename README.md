@@ -1,4 +1,4 @@
-# seer
+# Seer
 
 Seer is an open-source dashboard which allows you to view the freshness of a GitHub organization's
 public repositories. The dashboard uses the [GitHub API](https://developer.github.com/v3/) to
