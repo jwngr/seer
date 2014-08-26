@@ -10,7 +10,6 @@ var ReposContainer = React.createClass({
         pullRequests: "all"
       },
       organization: {
-        login: "",
         name: ""
       }
     };
@@ -36,7 +35,6 @@ var ReposContainer = React.createClass({
       }, function(organizationData) {
         _this.setState({
           organization: {
-            login: organization,
             name: organizationData.name
           }
         });
