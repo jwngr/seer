@@ -49,7 +49,7 @@ var ReposContainer = React.createClass({
   getIssuesForOrganization: function(organization) {
     var _this = this;
     $.getJSON("https://api.github.com/orgs/" + organization + "/repos", {
-      access_token: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d",
+      access_token: this.state.gitHubPublicAccessToken,
       per_page: 100
     }, function(repos) {
       // TODO: add pagination (https://developer.github.com/guides/traversing-with-pagination/)
@@ -100,7 +100,7 @@ var ReposContainer = React.createClass({
   render: function() {
     // Create the JSX for each repo
     var repos = this.state.repos.map(function(repo) {
-      return <Repo repo={ repo } filters={ this.state.filters } key={ repo.id } />;
+      return <Repo repo={ repo } filters={ this.state.filters } gitHubPublicAccessToken={ this.state.gitHubPublicAccessToken } key={ repo.id } />;
     }.bind(this));
 
     // Display a loading message if we haven't retrieved any repos yet
