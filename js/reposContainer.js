@@ -12,7 +12,7 @@ var ReposContainer = React.createClass({
       organization: {
         name: ""
       },
-      defaultOrganizationName: "firebase",
+      defaultOrganizationUsername: "firebase",
       gitHubPublicAccessToken: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d"
     };
   },
@@ -25,7 +25,7 @@ var ReposContainer = React.createClass({
   },
 
   componentWillMount: function() {
-    var organization = this.getQueryStringParameterByName("org") || this.state.defaultOrganizationName;
+    var organization = this.getQueryStringParameterByName("org") || this.state.defaultOrganizationUsername;
     this.getOrganizationNameAndIssues(organization);
   },
 
