@@ -24,7 +24,7 @@ here is the link to [Facebook Seer](https://seer.firebaseapp.com?org=facebook).
 
 You can also host your own version of Seer for your organization by cloning this repo. All you need
 to do is replace the default organization username and public (no permissions) GitHub access token
-[in `reposContainer.js` on this line](https://github.com/jacobawenger/seer/blob/93f3d5726cf5f789b5d49f706caf06c672316749/js/reposContainer.js#L27)
+[in `reposContainer.js` on this line](https://github.com/jacobawenger/seer/blob/d1ccf3359a46e7e841f4e40ad523aa7bd6178cc0/js/reposContainer.js#L15-L16)
 with your organization's username and your public GitHub access token.
 
 If you need a place to host your organization's Seer, check out [Firebase Hosting](https://www.firebase.com/hosting.html). You'll have your custom Seer up and running in just a couple minutes.
