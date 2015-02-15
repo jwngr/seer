@@ -44,7 +44,21 @@ looks at time since last update for the open issues. It completely ignores the n
 and pull requests as well as the time since last update for the open pull requests. I'm hoping
 someone want to implement a smarter algorithm for that!
 
+If you'd like to contribute to Seer, you'll need to run the following commands to get your
+environment set up:
 
-## License
+```bash
+$ git clone https://github.com/jwngr/seer.git
+$ cd seer               # go to the seer directory
+$ npm install -g gulp   # globally install gulp task runner
+$ npm install -g bower  # globally install Bower package manager
+$ npm install           # install local npm build dependencies
+$ bower install         # install local JavaScript dependencies
+$ gulp                  # build the distribution files
+```
 
-MIT
+`gulp watch` will watch for changes in the `/src/` directory and compile, lint, concatenate, minify,
+and copy the source files when a change occurs. The output files are written to the `/dist/`
+directory.
+
+To view Seer locally, just navigate to `file:///path/to/seer/dist/index.html`.
