@@ -4,6 +4,7 @@ var ReposContainer = React.createClass({
     return {
       repos: [],
       reposLoaded: false,
+      tableView: false,
       filters: {
         freshness: "all",
         issues: "all",
@@ -90,17 +91,23 @@ var ReposContainer = React.createClass({
   },
 
   updateNumPullRequestsFilter: function(event) {
-    var updatedFilters = this.state.filters;
+    var updatedFilters = this.state.value;
     updatedFilters.pullRequests = event.target.value;
     this.setState({
       filters: updatedFilters
     });
   },
 
+  toggleTableView: function() {
+    this.setState({
+      tableView: !this.state.tableView
+    });
+  },
+
   render: function() {
     // Create the JSX for each repo
     var repos = this.state.repos.map(function(repo) {
-      return <Repo repo={ repo } filters={ this.state.filters } gitHubPublicAccessToken={ this.state.gitHubPublicAccessToken } key={ repo.id } />;
+      return <Repo repo={ repo } filters={ this.state.filters } gitHubPublicAccessToken={ this.state.gitHubPublicAccessToken } key={ repo.id } tableView= { this.state.tableView } />;
     }.bind(this));
 
     // Display a loading message if we haven't retrieved any repos yet
@@ -113,7 +120,6 @@ var ReposContainer = React.createClass({
     }
 
     // Freshness scale
-
     var freshnessScale = [];
     for (var i = 0; i < 7; ++i) {
       var className = "freshnessLevel" + (i + 1);
@@ -122,12 +128,12 @@ var ReposContainer = React.createClass({
 
     return (
       <div>
-        <p id="title">{ this.state.organization.name } Seer</p>
-
         <div id="freshnessScale">
           <p>Freshness<br />Scale</p>
           { freshnessScale }
         </div>
+
+        <p id="title">{ this.state.organization.name } Seer</p>
 
         <div id="filters">
           <div>
@@ -161,6 +167,10 @@ var ReposContainer = React.createClass({
               <option value="some">Some</option>
             </select>
           </div>
+        </div>
+
+        <div id="tableViewCheckbox">
+          <input type="checkbox" name="tableView" onChange={ this.toggleTableView } /> Table View
         </div>
 
         <div>

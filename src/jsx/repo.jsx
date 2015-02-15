@@ -130,7 +130,7 @@ var Repo = React.createClass({
     return (numItems ? (totalDaysSinceUpdated / numItems) : 0);
   },
 
-  getRepoClasses: function(issues) {
+  getRepoClasses: function() {
     var classes = "repo ";
     if (this.props.repo.has_issues) {
       classes += "freshnessLevel" + this.state.freshnessLevel;
@@ -144,49 +144,77 @@ var Repo = React.createClass({
     var repo = this.props.repo;
 
     if (this.passesFilters()) {
-      // Create the JSX for each issue and pull request
-      var issues = this.state.issues.map(function(issue, index) {
-        return <Issue issue={ issue } key={ issue.id } />;
-      });
-      var pullRequests = this.state.pullRequests.map(function(pullRequest, index) {
-        return <Issue issue={ pullRequest } key={ pullRequest.id } />;
-      });
+      if (this.props.tableView) {
+        var averageDaysSinceIssuesUpdated = Math.round(this.getAverageDaysSinceUpdated(this.state.issues));
+        var averageDaysSincePullRequestsUpdated = Math.round(this.getAverageDaysSinceUpdated(this.state.pullRequests));
 
-      if (!repo.has_issues) {
-        issues = <div className="issues"><p>This repo has issues disabled.</p></div>;
-      } else if (issues.length === 0) {
-        issues = <div className="issues"><p>This repo has no open issues!</p></div>;
+        var dayOrDays;
+        var issuesAverageAgeString = "";
+        if (averageDaysSinceIssuesUpdated) {
+          dayOrDays = (averageDaysSinceIssuesUpdated === 1) ? "day" : "days";
+          issuesAverageAgeString = "(" + averageDaysSinceIssuesUpdated + " " + dayOrDays + " average)";
+        }
+
+        var pullRequestsAverageAgeString = "";
+        if (averageDaysSincePullRequestsUpdated) {
+          dayOrDays = (averageDaysSincePullRequestsUpdated === 1) ? "day" : "days";
+          pullRequestsAverageAgeString = "(" + averageDaysSincePullRequestsUpdated + " " + dayOrDays + " average)";
+        }
+
+        var repoClasses = this.getRepoClasses() + " tableView";
+
+        return (
+          <div className={ repoClasses }>
+            <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
+            <p className="numIssues">{ this.state.issues.length } Issues { issuesAverageAgeString }</p>
+            <p className="numPullRequests">{ this.state.pullRequests.length } PRs { pullRequestsAverageAgeString }</p>
+          </div>
+        );
       } else {
-        issues = (
-          <div className="issues">
-            <p>Issues</p>
-            <ol className="issues">
-              { issues }
-            </ol>
+        // Create the JSX for each issue and pull request
+        var issues = this.state.issues.map(function(issue, index) {
+          return <Issue issue={ issue } key={ issue.id } />;
+        });
+        var pullRequests = this.state.pullRequests.map(function(pullRequest, index) {
+          return <Issue issue={ pullRequest } key={ pullRequest.id } />;
+        });
+
+        if (!repo.has_issues) {
+          issues = <div className="issues"><p>This repo has issues disabled.</p></div>;
+        } else if (issues.length === 0) {
+          issues = <div className="issues"><p>This repo has no open issues!</p></div>;
+        } else {
+          issues = (
+            <div className="issues">
+              <p>Issues</p>
+              <ol className="issues">
+                { issues }
+              </ol>
+            </div>
+          );
+        }
+
+        if (pullRequests.length === 0) {
+          pullRequests = <div className="pullRequests"><p>This repo has no open pull requests!</p></div>;
+        } else {
+          pullRequests = (
+            <div className = "pullRequests">
+              <p>Pull Requests</p>
+              <ol>
+                { pullRequests }
+              </ol>
+            </div>
+          );
+        }
+
+        return (
+          <div className={ this.getRepoClasses() }>
+            <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
+            { issues }
+            { pullRequests }
           </div>
         );
       }
-
-      if (pullRequests.length === 0) {
-        pullRequests = <div className="pullRequests"><p>This repo has no open pull requests!</p></div>;
-      } else {
-        pullRequests = (
-          <div className = "pullRequests">
-            <p>Pull Requests</p>
-            <ol>
-              { pullRequests }
-            </ol>
-          </div>
-        );
-      }
-
-      return (
-        <div className={ this.getRepoClasses() }>
-          <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
-          { issues }
-          { pullRequests }
-        </div>
-      );
     } else {
       return(<div></div>);
     }

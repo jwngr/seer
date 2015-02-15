@@ -126,7 +126,7 @@ gulp.task("styles", function () {
 
     // Change file extension
     .pipe(rename(function(path) {
-        path.extname = ".css"
+      path.extname = ".css"
     }))
 
     // Write to the distribution directory

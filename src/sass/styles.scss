@@ -79,6 +79,13 @@ body {
   margin: 20px;
 }
 
+#tableViewCheckbox {
+  text-align: center;
+  font-family: "Norwester";
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
 #filters {
   text-align: center;
 
@@ -110,8 +117,8 @@ body {
 }
 
 #mainReposMessage {
-  font-family: "Helvetica Neue";
   text-align: center;
+  font-family: "Helvetica Neue";
 }
 
 
@@ -140,6 +147,15 @@ body {
   &.issuesDisabled {
     background: $gray;
     border: solid 3px darken($gray, 50%);
+  }
+
+  &.tableView > p {
+    display: inline-block;
+
+    &.numIssues, &.numPullRequests {
+      position: relative;
+      top: -2px;
+    }
   }
 }
 
