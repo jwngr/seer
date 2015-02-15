@@ -21,7 +21,7 @@ var ReposContainer = React.createClass({
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
     var results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " ").replace(/\//, ""));
+    return (results === null) ? "" : decodeURIComponent(results[1].replace(/\+/g, " ").replace(/\//, ""));
   },
 
   componentWillMount: function() {
@@ -117,7 +117,7 @@ var ReposContainer = React.createClass({
     var freshnessScale = [];
     for (var i = 0; i < 7; ++i) {
       var className = "freshnessLevel" + (i + 1);
-      freshnessScale.push(<div className={ className } key={ i }>&nbsp;</div>);
+      freshnessScale.push(<div className={ className } key={ i }></div>);
     }
 
     return (
@@ -171,4 +171,4 @@ var ReposContainer = React.createClass({
   }
 });
 
-React.renderComponent(<ReposContainer />, document.getElementById("reposContainer"));
+React.render(<ReposContainer />, document.getElementById("reposContainer"));

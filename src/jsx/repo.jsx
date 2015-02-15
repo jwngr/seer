@@ -165,7 +165,7 @@ var Repo = React.createClass({
             </ol>
           </div>
         );
-      };
+      }
 
       if (pullRequests.length === 0) {
         pullRequests = <div className="pullRequests"><p>This repo has no open pull requests!</p></div>;

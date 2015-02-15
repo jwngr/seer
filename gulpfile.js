@@ -5,6 +5,7 @@ var gulp = require("gulp");
 
 // File IO
 var sass = require("gulp-sass");
+var react = require("gulp-react");
 var concat = require("gulp-concat");
 var jshint = require("gulp-jshint");
 var uglify = require("gulp-uglify");
@@ -18,103 +19,150 @@ var karma = require("gulp-karma");
 /****************/
 /*  FILE PATHS  */
 /****************/
-// var paths = {
-//   destDir: "dist",
+var paths = {
+  html: {
+    src: {
+      dir: "src/",
+      files: ["src/*.html"]
+    },
+    dest: {
+      dir: "dist/"
+    }
+  },
 
-//   scripts: {
-//     src: {
-//       dir: "src/",
-//       files: [
-//         "**/*.js"
-//       ]
-//     },
-//     dest: {
-//       dir: "dist/js/",
-//       files: {
-//         unminified: "firegrapher.js",
-//         minified: "firegrapher.min.js"
-//       }
-//     }
-//   },
+  scripts: {
+    src: {
+      dir: "src/jsx/",
+      files: ["src/jsx/*.jsx"]
+    },
+    dest: {
+      dir: "dist/js/",
+      files: {
+        unminified: "bundle.js",
+        minified: "bundle.min.js"
+      }
+    }
+  },
 
-//   tests: {
-//     config: "tests/karma.conf.js",
-//     files: [
-//       "bower_components/firebase/firebase.js",
-//       "src/*.js",
-//       "tests/specs/*.spec.js"
-//     ]
-//   }
-// };
+  styles: {
+    src: {
+      dir: "src/sass/",
+      files: ["src/sass/*.scss"]
+    },
+    dest: {
+      dir: "dist/css/"
+    }
+  },
+
+  images: {
+    src: {
+      dir: "src/images/",
+      files: ["src/images/*.ico", "src/images/*.png"]
+    },
+    dest: {
+      dir: "dist/images/"
+    }
+  },
+
+  fonts: {
+    src: {
+      dir: "src/fonts/",
+      files: ["src/fonts/*.woff"]
+    },
+    dest: {
+      dir: "dist/fonts/"
+    }
+  }
+};
 
 
 /***********/
 /*  TASKS  */
 /***********/
-/* Lints, minifies, and concatenates the script files */
-gulp.task("scripts", function() {
-  return;
-
-  // // Concatenate all src files together
-  // var stream = streamqueue({ objectMode: true });
-  // stream.queue(gulp.src("build/header"));
-  // stream.queue(gulp.src(paths.scripts.src.dir + paths.scripts.src.files));
-  // stream.queue(gulp.src("build/footer"));
-
-  // // Output the final concatenated script file
-  // return stream.done()
-  //   // Rename file
-  //   .pipe(concat(paths.scripts.dest.files.unminified))
-
-  //   // Lint
-  //   .pipe(jshint())
-  //   .pipe(jshint.reporter("jshint-stylish"))
-
-  //   // Write un-minified version
-  //   .pipe(gulp.dest(paths.scripts.dest.dir))
-
-  //   // Minify
-  //   .pipe(uglify())
-
-  //   // Rename file
-  //   .pipe(concat(paths.scripts.dest.files.minified))
-
-  //   // Write minified version to the distribution directory
-  //   .pipe(gulp.dest(paths.scripts.dest.dir));
+/* Copies HTML files to the distribution directory */
+gulp.task("html", function () {
+  return gulp.src(paths.html.src.files)
+    // Write to the distribution directory
+    .pipe(gulp.dest(paths.html.dest.dir));
 });
 
-/* Compile SCSS files into CSS files */
+/* Compiles, lints, minifies, and concatenates the script files */
+gulp.task("scripts", function() {
+  return gulp.src(paths.scripts.src.files)
+    // Compile JSX into JS
+    .pipe(react({
+      harmony: true
+    }))
+
+    // Rename file
+    .pipe(concat(paths.scripts.dest.files.unminified))
+
+    // Lint
+    .pipe(jshint())
+    .pipe(jshint.reporter("jshint-stylish"))
+
+    // Write un-minified version  to the distribution directory
+    .pipe(gulp.dest(paths.scripts.dest.dir))
+
+    // Minify
+    .pipe(uglify())
+
+    // Rename file
+    .pipe(concat(paths.scripts.dest.files.minified))
+
+    // Write minified version to the distribution directory
+    .pipe(gulp.dest(paths.scripts.dest.dir));
+});
+
+
+/* Compiles SCSS files into CSS files */
 gulp.task("styles", function () {
-  return gulp.src("sass/*.scss")
+  return gulp.src(paths.styles.src.files)
+    // Compile SCSS into CSS
     .pipe(sass({
       "outputStyle" : "compressed",
       "errLogToConsole": true
     }))
+
+    // Change file extension
     .pipe(rename(function(path) {
         path.extname = ".css"
     }))
-    .pipe(gulp.dest("css"));
+
+    // Write to the distribution directory
+    .pipe(gulp.dest(paths.styles.dest.dir));
 });
 
-/* Uses the Karma test runner to run the Jasmine tests */
-gulp.task("test", function() {
-  return;
-  // return gulp.src(paths.tests.files)
-  //   .pipe(karma({
-  //     configFile: paths.tests.config,
-  //     action: "run"
-  //   }))
-  //   .on("error", function(err) {
-  //     throw err;
-  //   });
+
+/* Copies images to the distribution directory */
+gulp.task("images", function () {
+  return gulp.src(paths.images.src.files)
+    // Write to the distribution directory
+    .pipe(gulp.dest(paths.images.dest.dir));
 });
+
+
+/* Copies fonts to the distribution directory */
+gulp.task("fonts", function () {
+  return gulp.src(paths.fonts.src.files)
+    // Write to the distribution directory
+    .pipe(gulp.dest(paths.fonts.dest.dir));
+});
+
 
 /* Runs tasks when certain files change */
 gulp.task("watch", function() {
-  //gulp.watch(["js/*", paths.scripts.src.dir + paths.scripts.src.files], ["scripts"]);
-  gulp.watch(["sass/*.scss"], ["styles"]);
+  gulp.watch(paths.html.src.files, ["html"]);
+  gulp.watch(paths.scripts.src.files, ["scripts"]);
+  gulp.watch(paths.styles.src.files, ["styles"]);
+  gulp.watch(paths.images.src.files, ["images"]);
+  gulp.watch(paths.fonts.src.files, ["fonts"]);
 });
 
 
+/* Builds the distribution directory */
+gulp.task("build", ["html", "scripts", "styles", "images", "fonts"]);
+
+
 /* Builds and tests the files by default */
-gulp.task("default", ["scripts", "styles", "test"]);
+gulp.task("default", ["build"]);

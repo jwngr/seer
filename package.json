@@ -6,15 +6,16 @@
   "license": "MIT",
   "devDependencies": {
     "gulp": "^3.8.7",
-    "gulp-concat": "^2.3.4",
-    "gulp-uglify": "^0.3.1",
+    "gulp-concat": "^2.5.0",
     "gulp-jshint": "^1.8.4",
-    "gulp-sass": "^0.7.3",
-    "karma": "^0.12.21",
     "gulp-karma": "0.0.4",
+    "gulp-react": "^2.0.0",
     "gulp-rename": "^1.2.0",
+    "gulp-sass": "^0.7.3",
+    "gulp-uglify": "^0.3.1",
+    "jshint-stylish": "^1.0.0",
+    "karma": "^0.12.21",
     "streamqueue": "^0.1.1"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
