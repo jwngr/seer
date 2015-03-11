@@ -10,10 +10,6 @@ var concat = require("gulp-concat");
 var jshint = require("gulp-jshint");
 var uglify = require("gulp-uglify");
 var rename = require("gulp-rename");
-var streamqueue = require("streamqueue");
-
-// Testing
-var karma = require("gulp-karma");
 
 
 /****************/
