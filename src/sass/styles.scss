@@ -135,13 +135,34 @@ body {
   margin: 0 auto 20px auto;
   width: 800px;
 
+  .clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
   .repoName {
+    float: left;
     font-size: 22px;
     font-family: "Norwester";
     margin: 10px;
     a {
       color: $lightBlue;
       text-decoration: none;
+    }
+  }
+
+  .repoOwners {
+    float: left;
+
+    img {
+      height: 30px;
+      width: 30px;
+      margin-top: 5px;
+    }
+
+    img.primary {
+      margin-right: 10px;
     }
   }
 
@@ -155,14 +176,27 @@ body {
     border: solid 3px darken($gray, 50%);
   }
 
-  &.tableView > p {
-    display: inline-block;
-
-    &.numIssues, &.numPullRequests {
-      position: relative;
-      top: -2px;
+  &.tableView {
+    & > p {
+      display: inline-block;
     }
+
+    .repoName {
+      margin-top: 8px;
+    }
+
+    img {
+      margin-top: 4px;
+    }
+    // &.numIssues, &.numPullRequests {
+    //   position: relative;
+    //   top: -2px;
+    // }
   }
+
+  // &.tableView .repoName {
+  //   float: none;
+  // }
 }
 
 /***********/

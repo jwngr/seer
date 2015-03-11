@@ -3,14 +3,9 @@ var ReposContainer = React.createClass({
   getInitialState: function() {
     var ref = new Firebase("https://seer.firebaseio.com");
 
-    ref.onAuth(function(authData) {
-      this.setState({
-        authData: authData
-      });
-    }, this);
-
     return {
       ref: ref,
+      authData: null,
       repos: [],
       reposLoaded: false,
       tableView: false,
@@ -37,6 +32,20 @@ var ReposContainer = React.createClass({
   componentWillMount: function() {
     var organization = this.getQueryStringParameterByName("org") || this.state.defaultOrganizationUsername;
     this.getOrganizationNameAndIssues(organization);
+
+    this.state.ref.onAuth(function(authData) {
+      this.setState({
+        authData: authData
+      });
+
+      if (authData) {
+        this.getMembersForOrganization(organization, authData.github.accessToken);
+      } else {
+        this.setState({
+          members: undefined
+        });
+      }
+    }, this);
   },
 
   getOrganizationNameAndIssues: function(organization) {
@@ -76,9 +85,42 @@ var ReposContainer = React.createClass({
         }
       });
 
+      // Add the Firebase ref for each repo
+      repos.forEach(function(repo) {
+        repo.ref = _this.state.ref.child(organization).child(repo.id);
+      });
+
       _this.setState({
         repos: repos,
         reposLoaded: true
+      });
+    });
+  },
+
+  getMembersForOrganization: function(organization, accessToken) {
+    var _this = this;
+
+    $.getJSON("https://api.github.com/orgs/" + organization + "/members", {
+      access_token: accessToken,
+      per_page: 100
+    }, function(members) {
+      // TODO: add pagination (https://developer.github.com/guides/traversing-with-pagination/)
+      if (members.length === 100) {
+        alert("GitHub only returns 100 members per page and this organization has over 100 members so some will be missing. Pagination must be implemented.");
+      }
+
+      var filteredMembers = {};
+      members.forEach(function(member) {
+        filteredMembers[member.login] = {
+          name: "TODO",
+          url: member.url,
+          html_url: member.html_url,
+          avatar_url: member.avatar_url
+        };
+      });
+
+      _this.setState({
+        members: filteredMembers
       });
     });
   },
@@ -130,7 +172,7 @@ var ReposContainer = React.createClass({
   render: function() {
     // Create the JSX for each repo
     var repos = this.state.repos.map(function(repo) {
-      return <Repo repo={ repo } filters={ this.state.filters } gitHubPublicAccessToken={ this.state.gitHubPublicAccessToken } key={ repo.id } tableView= { this.state.tableView } />;
+      return <Repo repo={ repo } filters={ this.state.filters } gitHubPublicAccessToken={ this.state.gitHubPublicAccessToken } members={ this.state.members } key={ repo.id } tableView= { this.state.tableView } />;
     }.bind(this));
 
     // Display a loading message if we haven't retrieved any repos yet

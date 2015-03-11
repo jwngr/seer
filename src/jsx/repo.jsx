@@ -78,6 +78,24 @@ var Repo = React.createClass({
     return (passesFreshnessFilter && passesIssuesFilter && passesPullRequestsFilter);
   },
 
+  getOwners: function() {
+    this.props.repo.ref.once("value", function(snapshot) {
+      var repoData = snapshot.val();
+      if (repoData && repoData.owners) {
+        var primaryOwnerName = repoData.owners.primary;
+        var secondaryOwnerName = repoData.owners.secondary;
+        this.setState({
+          owners: {
+            primary: this.props.members[primaryOwnerName],
+            secondary: this.props.members[secondaryOwnerName]
+          }
+        });
+      }
+    }, function(error) {
+      console.log("Error retrieving repo owners from Firebase:", error);
+    }, this);
+  },
+
   getFreshnessLevel: function(issues, pullRequests) {
     // Get the average number of days since the issues and pull requests were last updated
     var averageDaysSinceIssuesUpdated = this.getAverageDaysSinceUpdated(issues);
@@ -137,11 +155,34 @@ var Repo = React.createClass({
     } else {
       classes += " issuesDisabled";
     }
+
+    if (this.props.tableView) {
+      classes += " tableView";
+    }
     return classes;
   },
 
   render: function() {
+    if (this.props.members && !this.state.owners) {
+      this.getOwners();
+    }
+
     var repo = this.props.repo;
+
+    var repoOwners;
+    if (this.props.members && this.state.owners) {
+      var primaryOwner = this.state.owners.primary;
+      var secondaryOwner = this.state.owners.secondary;
+      repoOwners =
+        <div className="repoOwners">
+          <a href={ primaryOwner.html_url }>
+            <img className="primary" src={ primaryOwner.avatar_url } alt={ primaryOwner.name } title={ primaryOwner.name } />
+          </a>
+          <a href={ secondaryOwner.html_url }>
+            <img className="secondary" src={ secondaryOwner.avatar_url } alt={ secondaryOwner.name } title={ secondaryOwner.name } />
+          </a>
+        </div>;
+    }
 
     if (this.passesFilters()) {
       if (this.props.tableView) {
@@ -161,11 +202,12 @@ var Repo = React.createClass({
           pullRequestsAverageAgeString = "(" + averageDaysSincePullRequestsUpdated + " " + dayOrDays + " average)";
         }
 
-        var repoClasses = this.getRepoClasses() + " tableView";
-
         return (
-          <div className={ repoClasses }>
-            <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
+          <div className={ this.getRepoClasses() }>
+            <div>
+              <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
+              { repoOwners }
+            </div>
             <p className="numIssues">{ this.state.issues.length } Issues { issuesAverageAgeString }</p>
             <p className="numPullRequests">{ this.state.pullRequests.length } PRs { pullRequestsAverageAgeString }</p>
           </div>
@@ -209,7 +251,10 @@ var Repo = React.createClass({
 
         return (
           <div className={ this.getRepoClasses() }>
-            <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
+            <div className="clearfix">
+              <p className="repoName"><a href={ this.props.repo.html_url }>{ this.props.repo.name }</a></p>
+              { repoOwners }
+            </div>
             { issues }
             { pullRequests }
           </div>
