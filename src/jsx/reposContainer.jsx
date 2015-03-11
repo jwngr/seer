@@ -1,7 +1,16 @@
 /** @jsx React.DOM */
 var ReposContainer = React.createClass({
   getInitialState: function() {
+    var ref = new Firebase("https://seer.firebaseio.com");
+
+    ref.onAuth(function(authData) {
+      this.setState({
+        authData: authData
+      });
+    }, this);
+
     return {
+      ref: ref,
       repos: [],
       reposLoaded: false,
       tableView: false,
@@ -74,6 +83,20 @@ var ReposContainer = React.createClass({
     });
   },
 
+  toggleAuthState: function() {
+    if (this.state.ref.getAuth()) {
+      // Logged in
+      this.state.ref.unauth();
+    } else {
+      // Logged out
+      this.state.ref.authWithOAuthPopup("github", function(error, authData) {
+        if (error) {
+          console.log("Error login in with GitHub:", error);
+        }
+      });
+    }
+  },
+
   updateFreshnessFilter: function(event) {
     var updatedFilters = this.state.filters;
     updatedFilters.freshness = event.target.value;
@@ -126,12 +149,26 @@ var ReposContainer = React.createClass({
       freshnessScale.push(<div className={ className } key={ i }></div>);
     }
 
+    // Login / logout buttons
+    var loginLogoutButtonText;
+    if (this.state.authData) {
+      // Logged in
+      loginLogoutButtonText = "Logout";
+    } else {
+      // Logged out
+      loginLogoutButtonText = "Sign in with GitHub";
+    }
+
     return (
       <div>
         <div id="freshnessScale">
           <p>Freshness<br />Scale</p>
           { freshnessScale }
         </div>
+
+        <a id="loginLogoutButton" className="btn-auth btn-github large" href="#" onClick={ this.toggleAuthState }>
+          { loginLogoutButtonText }
+        </a>
 
         <p id="title">{ this.state.organization.name } Seer</p>
 
