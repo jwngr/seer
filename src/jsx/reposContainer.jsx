@@ -91,7 +91,7 @@ var ReposContainer = React.createClass({
   },
 
   updateNumPullRequestsFilter: function(event) {
-    var updatedFilters = this.state.value;
+    var updatedFilters = this.state.filters;
     updatedFilters.pullRequests = event.target.value;
     this.setState({
       filters: updatedFilters
