@@ -90,6 +90,10 @@ var Repo = React.createClass({
             secondary: this.props.members[secondaryOwnerName]
           }
         });
+      } else {
+        this.setState({
+          owners: undefined
+        });
       }
     }, function(error) {
       console.log("Error retrieving repo owners from Firebase:", error);
@@ -162,6 +166,12 @@ var Repo = React.createClass({
     return classes;
   },
 
+  toggleEditMode: function() {
+    this.setState({
+      editing: !this.state.editing
+    });
+  },
+
   render: function() {
     if (this.props.members && !this.state.owners) {
       this.getOwners();
@@ -169,23 +179,38 @@ var Repo = React.createClass({
 
     var repo = this.props.repo;
 
-    var repoOwners;
+    var primaryOwner, secondaryOwner, repoOwners;
     if (this.props.members && this.state.owners) {
-      var primaryOwner = this.state.owners.primary;
-      var secondaryOwner = this.state.owners.secondary;
-      repoOwners =
-        <div className="repoOwners">
-          <a href={ primaryOwner.html_url }>
-            <img className="primary" src={ primaryOwner.avatar_url } alt={ primaryOwner.name } title={ primaryOwner.name } />
-          </a>
-          <a href={ secondaryOwner.html_url }>
-            <img className="secondary" src={ secondaryOwner.avatar_url } alt={ secondaryOwner.name } title={ secondaryOwner.name } />
-          </a>
-        </div>;
+      primaryOwner = this.state.owners.primary;
+      secondaryOwner = this.state.owners.secondary;
+      if (secondaryOwner) {
+        repoOwners =
+          <div className="repoOwners">
+            <a href={ primaryOwner.html_url }>
+              <img className="primary" src={ primaryOwner.avatar_url } alt={ primaryOwner.name } title={ primaryOwner.name } />
+            </a>
+            <a href={ secondaryOwner.html_url }>
+              <img className="secondary" src={ secondaryOwner.avatar_url } alt={ secondaryOwner.name } title={ secondaryOwner.name } />
+            </a>
+          </div>;
+      } else {
+        repoOwners =
+          <div className="repoOwners">
+            <a href={ primaryOwner.html_url }>
+              <img className="primary" src={ primaryOwner.avatar_url } alt={ primaryOwner.name } title={ primaryOwner.name } />
+            </a>
+          </div>;
+      }
     }
 
     if (this.passesFilters()) {
-      if (this.props.tableView) {
+      if (this.state.editing) {
+        primaryOwner = primaryOwner || { username: '' };
+        secondaryOwner = secondaryOwner || { username: '' };
+        return (
+          <EditRepo classes={ this.getRepoClasses() } repo={ repo } repoOwners={ repoOwners } primaryOwner={ primaryOwner} secondaryOwner={ secondaryOwner } members={ this.props.members } toggleEditMode={ this.toggleEditMode } updateOwners={ this.getOwners } />
+        );
+      } else if (this.props.tableView) {
         var averageDaysSinceIssuesUpdated = Math.round(this.getAverageDaysSinceUpdated(this.state.issues));
         var averageDaysSincePullRequestsUpdated = Math.round(this.getAverageDaysSinceUpdated(this.state.pullRequests));
 
@@ -210,6 +235,7 @@ var Repo = React.createClass({
             </div>
             <p className="numIssues">{ this.state.issues.length } Issues { issuesAverageAgeString }</p>
             <p className="numPullRequests">{ this.state.pullRequests.length } PRs { pullRequestsAverageAgeString }</p>
+            <button className="editButton" onClick={ this.toggleEditMode }>Edit</button>
           </div>
         );
       } else {
@@ -257,6 +283,7 @@ var Repo = React.createClass({
             </div>
             { issues }
             { pullRequests }
+            <button className="editButton" onClick={ this.toggleEditMode }>Edit</button>
           </div>
         );
       }

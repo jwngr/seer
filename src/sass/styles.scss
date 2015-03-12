@@ -134,6 +134,7 @@ body {
 .repo {
   margin: 0 auto 20px auto;
   width: 800px;
+  position: relative;
 
   .clearfix:after {
     content: "";
@@ -188,16 +189,45 @@ body {
     img {
       margin-top: 4px;
     }
-    // &.numIssues, &.numPullRequests {
-    //   position: relative;
-    //   top: -2px;
-    // }
   }
 
-  // &.tableView .repoName {
-  //   float: none;
-  // }
+  .editButton, .doneButton {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 4px;
+  }
 }
+
+/***************/
+/*  EDIT REPO  */
+/***************/
+.edit {
+  label {
+    margin: 0 10px 0 10px;
+    font-family: "Helvetica Neue";
+    font-weight: bold;
+  }
+
+  .ownerInput {
+    outline: none;
+    padding: 5px;
+    border: solid 3px;
+
+    &.invalid {
+      border-color: $putrid;
+    }
+
+    &:not(.invalid) {
+      border-color: darken($gray, 30%);
+    }
+  }
+
+  .ownerContainer {
+    margin-bottom: 5px;
+  }
+}
+
 
 /***********/
 /*  ISSUE  */

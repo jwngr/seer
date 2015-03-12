@@ -113,6 +113,7 @@ var ReposContainer = React.createClass({
       members.forEach(function(member) {
         filteredMembers[member.login] = {
           name: "TODO",
+          username: member.login,
           url: member.url,
           html_url: member.html_url,
           avatar_url: member.avatar_url
