@@ -203,6 +203,11 @@ var Repo = React.createClass({
       }
     }
 
+    var editButton;
+    if (this.props.members) {
+      editButton = <button className="editButton" onClick={ this.toggleEditMode }>Edit</button>;
+    }
+
     if (this.passesFilters()) {
       if (this.state.editing) {
         primaryOwner = primaryOwner || { username: '' };
@@ -235,7 +240,7 @@ var Repo = React.createClass({
             </div>
             <p className="numIssues">{ this.state.issues.length } Issues { issuesAverageAgeString }</p>
             <p className="numPullRequests">{ this.state.pullRequests.length } PRs { pullRequestsAverageAgeString }</p>
-            <button className="editButton" onClick={ this.toggleEditMode }>Edit</button>
+            { editButton }
           </div>
         );
       } else {
@@ -283,7 +288,7 @@ var Repo = React.createClass({
             </div>
             { issues }
             { pullRequests }
-            <button className="editButton" onClick={ this.toggleEditMode }>Edit</button>
+            { editButton }
           </div>
         );
       }
