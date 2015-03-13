@@ -1,0 +1,39 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        ".write": "auth.uid === $uid",
+        ".validate": "newData.hasChildren(['github', 'orgs'])",
+
+        "github": {
+         ".validate": "newData.hasChildren()"
+        },
+        "orgs": {
+          "$orgId": {
+            ".validate": "newData.isString()"
+          }
+        }
+      }
+    },
+
+    "orgs": {
+      "$orgId": {
+        ".read": "root.child('users').child(auth.uid).child('orgs').hasChild($orgId)",
+        ".write": "root.child('users').child(auth.uid).child('orgs').hasChild($orgId)",
+        "$repoId": {
+          ".validate": "newData.hasChildren(['owners'])",
+          "owners": {
+            ".validate": "newData.hasChildren(['primary', 'secondary'])",
+            "primary": {
+              ".validate": "newData.isString()"
+            },
+            "secondary": {
+              ".validate": "newData.isString()"
+            }
+          }
+        }
+      }
+    }
+  }
+}
