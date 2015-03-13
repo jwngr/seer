@@ -1,24 +1,20 @@
 /** @jsx React.DOM */
 var ReposContainer = React.createClass({
   getInitialState: function() {
-    var ref = new Firebase("https://seer.firebaseio.com");
-
     return {
-      ref: ref,
-      authData: null,
-      repos: [],
+      ref: new Firebase("https://" + this.props.firebase + ".firebaseio.com"),
+      repos: {},
+      members: undefined,
       reposLoaded: false,
-      tableView: false,
+      repoLayout: "card",
+      organization: {},
+      isLoggedIn: false,
+      belongsToOrganization: false,
       filters: {
         freshness: "all",
         issues: "all",
         pullRequests: "all"
-      },
-      organization: {
-        name: ""
-      },
-      defaultOrganizationUsername: "firebase",
-      gitHubPublicAccessToken: "d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d"
+      }
     };
   },
 
@@ -30,108 +26,219 @@ var ReposContainer = React.createClass({
   },
 
   componentWillMount: function() {
-    var organization = this.getQueryStringParameterByName("org") || this.state.defaultOrganizationUsername;
-    this.getOrganizationNameAndIssues(organization);
+    var _this = this;
 
+    var organizationUsername = this.getQueryStringParameterByName("org") || this.getQueryStringParameterByName("organization") || this.props.organizationUsername;
+
+    // Get the organization's public metadata
+    var organizationData, repos;
+    this.getOrganizationPublicMetadata(organizationUsername).then(function(result) {
+      organizationData = result;
+
+      return RSVP.all([
+        // Get the organization's public repos
+        _this.getOrganizationPublicRepos(organizationData),
+
+        // Get the organization's public members
+        _this.getOrganizationPublicMembers(organizationData)
+      ]);
+    }).then(function(values) {
+      repos = values[0];
+      if (_this.state.isLoggedIn && _this.state.belongsToOrganization) {
+        _this.getRepoOwners(organizationData, repos);
+      } else {
+        _this.setState({
+          repos: repos,
+          reposLoaded: true
+        });
+      }
+    }).catch(function(error) {
+      console.log('Error:', error);
+    });
+
+    // Every time auth state changes
     this.state.ref.onAuth(function(authData) {
       this.setState({
-        authData: authData
+        isLoggedIn: (authData !== null)
       });
 
       if (authData) {
-        this.getMembersForOrganization(organization, authData.github.accessToken);
-      } else {
-        this.setState({
-          members: undefined
+        // Add the logged-in user to Firebase (or update their existing data)
+        this.addOrUpdateUserDataInFirebase(authData).then(function(loggedInUsersOrganizations) {
+          // Check if the logged-in user belongs to the current organization
+          var belongsToOrganization = false;
+          Object.keys(loggedInUsersOrganizations).forEach(function(key) {
+            belongsToOrganization = belongsToOrganization || (loggedInUsersOrganizations[key] === organizationUsername);
+          });
+
+          if (belongsToOrganization) {
+            if (_this.state.reposLoaded) {
+              _this.getRepoOwners(organizationData, repos);
+            }
+
+            _this.setState({
+              belongsToOrganization: true
+            });
+          }
         });
       }
     }, this);
   },
 
-  getOrganizationNameAndIssues: function(organization) {
-    if (organization !== "") {
-      var _this = this;
-      $.getJSON("https://api.github.com/orgs/" + organization, {
-        access_token: this.state.gitHubPublicAccessToken
-      }, function(organizationData) {
-        _this.setState({
-          organization: {
-            name: organizationData.name
+  getRepoOwners: function(organizationData, repos) {
+    return new RSVP.Promise(function(resolve, reject) {
+      this.state.ref.child("orgs").child(organizationData.id).on("value", function(snapshot) {
+        snapshot.forEach(function(repoSnapshot) {
+          var repoName = repoSnapshot.key().toLowerCase();
+          var repoData = repoSnapshot.val();
+          var primaryOwnerName = repoData.owners.primary;
+          var secondaryOwnerName = repoData.owners.secondary;
+
+          repos[repoName].seerOwners = {
+            primary: this.state.members[primaryOwnerName],
+            secondary: this.state.members[secondaryOwnerName]
+          };
+        }.bind(this));
+
+        this.setState({
+          repos: repos,
+          reposLoaded: true
+        });
+      }, function(error) {
+        console.log("Error retrieving repo owners from Firebase:", error);
+      }, this);
+    }.bind(this));
+  },
+
+  addOrUpdateUserDataInFirebase: function(authData, callback) {
+    return new RSVP.Promise(function(resolve, reject) {
+      var userRef = this.state.ref.child("users").child(authData.uid);
+      this.getOrganizationsUserBelongsTo(authData.github.username).then(function(loggedInUsersOrganizations) {
+        userRef.set({
+          github: authData.github,
+          orgs: loggedInUsersOrganizations
+        }, function(error) {
+          if (error) {
+            console.log("Error adding " + authData.uid + " to the users node:", error);
           }
+
+          return resolve(loggedInUsersOrganizations);
+        });
+      });
+    }.bind(this));
+  },
+
+  getOrganizationsUserBelongsTo: function(username, callback) {
+    return new RSVP.Promise(function(resolve, reject) {
+      $.getJSON("https://api.github.com/users/" + username + "/orgs", {
+        access_token: this.props.gitHubPublicAccessToken
+      }, function(organizations) {
+        var filteredOrganizations = {};
+        organizations.forEach(function(organization) {
+          filteredOrganizations[organization.id] = organization.login;
         });
 
-        _this.getIssuesForOrganization(organization);
+        return resolve(filteredOrganizations);
       });
-    }
+    }.bind(this));
   },
 
-  getIssuesForOrganization: function(organization) {
-    var _this = this;
-    $.getJSON("https://api.github.com/orgs/" + organization + "/repos", {
-      access_token: this.state.gitHubPublicAccessToken,
-      per_page: 100
-    }, function(repos) {
-      // TODO: add pagination (https://developer.github.com/guides/traversing-with-pagination/)
-      if (repos.length === 100) {
-        alert("GitHub only returns 100 repos per page and this organization has over 100 repos so some will be missing. Pagination must be implemented.");
-      }
-
-      // Sort the repos alphabetically
-      repos.sort(function(a, b) {
-        if (a.name.toLowerCase() > b.name.toLowerCase()) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
-
-      // Add the Firebase ref for each repo
-      repos.forEach(function(repo) {
-        repo.ref = _this.state.ref.child(organization).child(repo.id);
-      });
-
-      _this.setState({
-        repos: repos,
-        reposLoaded: true
-      });
-    });
-  },
-
-  getMembersForOrganization: function(organization, accessToken) {
-    var _this = this;
-
-    $.getJSON("https://api.github.com/orgs/" + organization + "/members", {
-      access_token: accessToken,
-      per_page: 100
-    }, function(members) {
-      // TODO: add pagination (https://developer.github.com/guides/traversing-with-pagination/)
-      if (members.length === 100) {
-        alert("GitHub only returns 100 members per page and this organization has over 100 members so some will be missing. Pagination must be implemented.");
-      }
-
-      var filteredMembers = {};
-      members.forEach(function(member) {
-        filteredMembers[member.login] = {
-          name: "TODO",
-          username: member.login,
-          url: member.url,
-          html_url: member.html_url,
-          avatar_url: member.avatar_url
+  getOrganizationPublicMetadata: function(organizationUsername) {
+    return new RSVP.Promise(function(resolve, reject) {
+      $.getJSON("https://api.github.com/orgs/" + organizationUsername, {
+        access_token: this.props.gitHubPublicAccessToken
+      }, function(organization) {
+        var organizationData = {
+          id: organization.id,
+          name: organization.name,
+          username: organizationUsername,
+          html_url: organization.html_url,
+          avatar_url: organization.avatar_url
         };
-      });
 
-      _this.setState({
-        members: filteredMembers
-      });
-    });
+        this.setState({
+          organization: organizationData
+        });
+
+        return resolve(organizationData);
+      }.bind(this));
+    }.bind(this));
+  },
+
+  getOrganizationPublicRepos: function(organizationData) {
+    return new RSVP.Promise(function(resolve, reject) {
+      $.getJSON("https://api.github.com/orgs/" + organizationData.username + "/repos", {
+        access_token: this.props.gitHubPublicAccessToken,
+        per_page: 100
+      }, function(repos) {
+        // TODO: add pagination (https://developer.github.com/guides/traversing-with-pagination/)
+        if (repos.length === 100) {
+          alert("GitHub only returns 100 repos per page and this organization has over 100 repos so some will be missing. Pagination must be implemented.");
+        }
+
+        // Convert the list into a dictionary, keyed by repo ID
+        var filteredRepos = {};
+        repos.forEach(function(repo) {
+          repo.ref = this.state.ref.child("orgs").child(organizationData.id).child(repo.id);
+          repo.seerOwners = {
+            primary: "",
+            seconday: ""
+          };
+          filteredRepos[repo.id] = repo;
+        }.bind(this));
+
+        return resolve(filteredRepos);
+      }.bind(this));
+    }.bind(this));
+  },
+
+  getOrganizationPublicMembers: function(organizationData) {
+    return new RSVP.Promise(function(resolve, reject) {
+      $.getJSON("https://api.github.com/orgs/" + organizationData.username + "/members", {
+        access_token: this.props.gitHubPublicAccessToken,
+        per_page: 100
+      }, function(members) {
+        // TODO: add pagination (https://developer.github.com/guides/traversing-with-pagination/)
+        if (members.length === 100) {
+          alert("GitHub only returns 100 members per page and this organization has over 100 members so some will be missing. Pagination must be implemented.");
+        }
+
+        var filteredMembers = {};
+        members.forEach(function(member) {
+          filteredMembers[member.login] = {
+            name: "TODO",
+            username: member.login,
+            url: member.url,
+            html_url: member.html_url,
+            avatar_url: member.avatar_url
+          };
+        });
+
+        this.setState({
+          members: filteredMembers
+        }, function() {
+          return resolve(filteredMembers);
+        });
+      }.bind(this));
+    }.bind(this));
+  },
+
+  getSortedRepoIds: function() {
+    var repoIds = Object.keys(this.state.repos);
+    repoIds.sort(function(a, b) {
+      if (this.state.repos[a].name.toLowerCase() > this.state.repos[b].name.toLowerCase()) {
+        return 1;
+      } else {
+        return -1;
+      }
+    }.bind(this));
+    return repoIds;
   },
 
   toggleAuthState: function() {
-    if (this.state.ref.getAuth()) {
-      // Logged in
+    if (this.state.isLoggedIn) {
       this.state.ref.unauth();
     } else {
-      // Logged out
       this.state.ref.authWithOAuthPopup("github", function(error, authData) {
         if (error) {
           console.log("Error login in with GitHub:", error);
@@ -164,16 +271,26 @@ var ReposContainer = React.createClass({
     });
   },
 
-  toggleTableView: function() {
+  toggleRepoLayout: function() {
     this.setState({
-      tableView: !this.state.tableView
+      repoLayout: (this.state.repoLayout === "card") ? "table" : "card"
     });
   },
 
   render: function() {
     // Create the JSX for each repo
-    var repos = this.state.repos.map(function(repo) {
-      return <Repo repo={ repo } filters={ this.state.filters } gitHubPublicAccessToken={ this.state.gitHubPublicAccessToken } members={ this.state.members } key={ repo.id } tableView= { this.state.tableView } />;
+    var sortedRepoIds = this.getSortedRepoIds();
+    var repos = sortedRepoIds.map(function(repoId) {
+      var repo = this.state.repos[repoId];
+      var isAdmin = this.state.isLoggedIn && this.state.belongsToOrganization;
+      return <Repo
+                key={ repo.id }
+                repo={ repo }
+                isAdmin={ isAdmin }
+                filters={ this.state.filters }
+                members={ this.state.members }
+                repoLayout= { this.state.repoLayout }
+                gitHubPublicAccessToken={ this.props.gitHubPublicAccessToken } />;
     }.bind(this));
 
     // Display a loading message if we haven't retrieved any repos yet
@@ -181,34 +298,15 @@ var ReposContainer = React.createClass({
       if (this.state.reposLoaded) {
         repos = <p id="mainReposMessage">No repos match the chosen filters.</p>;
       } else {
-       repos = <p id="mainReposMessage">Loading issues for { this.state.organization.name } repos...</p>;
+        repos = <p id="mainReposMessage">Loading issues for { this.state.organization.name } repos...</p>;
       }
     }
 
-    // Freshness scale
-    var freshnessScale = [];
-    for (var i = 0; i < 7; ++i) {
-      var className = "freshnessLevel" + (i + 1);
-      freshnessScale.push(<div className={ className } key={ i }></div>);
-    }
-
-    // Login / logout buttons
-    var loginLogoutButtonText;
-    if (this.state.authData) {
-      // Logged in
-      loginLogoutButtonText = "Logout";
-    } else {
-      // Logged out
-      loginLogoutButtonText = "Sign in with GitHub";
-    }
+    // Login / logout button text
+    var loginLogoutButtonText = this.state.isLoggedIn ? "Logout" : "Login with GitHub";
 
     return (
       <div>
-        <div id="freshnessScale">
-          <p>Freshness<br />Scale</p>
-          { freshnessScale }
-        </div>
-
         <a id="loginLogoutButton" className="btn-auth btn-github large" href="#" onClick={ this.toggleAuthState }>
           { loginLogoutButtonText }
         </a>
@@ -249,8 +347,8 @@ var ReposContainer = React.createClass({
           </div>
         </div>
 
-        <div id="tableViewCheckbox">
-          <input type="checkbox" name="tableView" onChange={ this.toggleTableView } /> Table View
+        <div id="repoLayoutCheckbox">
+          <input type="checkbox" name="repoLayoutIsTable" onChange={ this.toggleRepoLayout } /> Table View
         </div>
 
         <div>
@@ -261,4 +359,9 @@ var ReposContainer = React.createClass({
   }
 });
 
-React.render(<ReposContainer />, document.getElementById("reposContainer"));
+React.render(
+  <ReposContainer
+    firebase="seer"
+    organizationUsername="firebase"
+    gitHubPublicAccessToken="d838d4f13e7d8fd3b0446f7b1dac1e330b7b8d3d" />, document.getElementById("reposContainer")
+);

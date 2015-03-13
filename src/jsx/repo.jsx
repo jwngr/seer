@@ -160,9 +160,8 @@ var Repo = React.createClass({
       classes += " issuesDisabled";
     }
 
-    if (this.props.tableView) {
-      classes += " tableView";
-    }
+    classes += " " + this.props.repoLayout;
+
     return classes;
   },
 
@@ -173,16 +172,12 @@ var Repo = React.createClass({
   },
 
   render: function() {
-    if (this.props.members && !this.state.owners) {
-      this.getOwners();
-    }
-
     var repo = this.props.repo;
 
     var primaryOwner, secondaryOwner, repoOwners;
-    if (this.props.members && this.state.owners) {
-      primaryOwner = this.state.owners.primary;
-      secondaryOwner = this.state.owners.secondary;
+    if (this.props.isAdmin && this.props.repo.seerOwners.primary) {
+      primaryOwner = this.props.repo.seerOwners.primary;
+      secondaryOwner = this.props.repo.seerOwners.secondary;
       if (secondaryOwner) {
         repoOwners =
           <div className="repoOwners">
@@ -204,7 +199,7 @@ var Repo = React.createClass({
     }
 
     var editButton;
-    if (this.props.members) {
+    if (this.props.isAdmin) {
       editButton = <button className="editButton" onClick={ this.toggleEditMode }>Edit</button>;
     }
 
@@ -215,7 +210,7 @@ var Repo = React.createClass({
         return (
           <EditRepo classes={ this.getRepoClasses() } repo={ repo } repoOwners={ repoOwners } primaryOwner={ primaryOwner} secondaryOwner={ secondaryOwner } members={ this.props.members } toggleEditMode={ this.toggleEditMode } updateOwners={ this.getOwners } />
         );
-      } else if (this.props.tableView) {
+      } else if (this.props.repoLayout === "table") {
         var averageDaysSinceIssuesUpdated = Math.round(this.getAverageDaysSinceUpdated(this.state.issues));
         var averageDaysSincePullRequestsUpdated = Math.round(this.getAverageDaysSinceUpdated(this.state.pullRequests));
 
@@ -243,7 +238,7 @@ var Repo = React.createClass({
             { editButton }
           </div>
         );
-      } else {
+      } else if (this.props.repoLayout === "card") {
         // Create the JSX for each issue and pull request
         var issues = this.state.issues.map(function(issue, index) {
           return <Issue issue={ issue } key={ issue.id } />;
