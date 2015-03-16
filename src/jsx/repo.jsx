@@ -204,7 +204,7 @@ var Repo = React.createClass({
     }
 
     if (this.passesFilters()) {
-      if (this.state.editing) {
+      if (this.props.isAdmin && this.state.editing) {
         primaryOwner = primaryOwner || { username: '' };
         secondaryOwner = secondaryOwner || { username: '' };
         return (
