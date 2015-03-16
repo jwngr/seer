@@ -206,7 +206,7 @@ var ReposContainer = React.createClass({
         var filteredMembers = {};
         members.forEach(function(member) {
           filteredMembers[member.login] = {
-            name: "TODO",
+            name: member.login,  // TODO: use name instead of username
             username: member.login,
             url: member.url,
             html_url: member.html_url,
