@@ -1,4 +1,4 @@
-# Seer
+# Seer ![GitHub Seer Logo - Green Eye](./src/images/greenEye.ico)
 
 Seer is an open-source dashboard to help you manage your GitHub organization's public repositories.
 The dashboard uses the [GitHub API](https://developer.github.com/v3/) to retrieve all open issues
