@@ -1,13 +1,14 @@
 # Seer
 
-Seer is an open-source dashboard which allows you to view the freshness of a GitHub organization's
-public repositories. The dashboard uses the [GitHub API](https://developer.github.com/v3/) to
-retrieve an organization's list of repos and then displays all the open issues and pull requests for
-those repos. It assigns each repo a color depending on how "fresh" the repo is. That is, how many
-open issues and pull requests are there and how long has it been since they have been updated.
+Seer is an open-source dashboard to help you manage your GitHub organization's public repositories.
+The dashboard uses the [GitHub API](https://developer.github.com/v3/) to retrieve all open issues
+and pull requests for your organization's public repos. It assigns each repo a color depending on how
+"fresh" it is; that is, how many open issues and pull requests are there and how long has it been
+since they have been updated.
 
-Seer can give you a good idea of what repos are becoming unmaintainable within your organization.
-You can then either give them some more love or deprecate them.
+Seer can give you a good idea of what repos are becoming unmaintainable within your organization. It
+also lets you assign a primary and secondary owner to your repos so everyone knows who is responsible
+for what. Seer will help you get a high level view of your repos and give them the love they need.
 
 
 ## Demo
@@ -24,25 +25,21 @@ here is the link to [Facebook Seer](https://seer.firebaseapp.com?org=facebook).
 
 You can also host your own version of Seer for your organization by cloning this repo. All you need
 to do is replace the default organization username and public (no permissions) GitHub access token
-[in `reposContainer.js` on this line](https://github.com/jacobawenger/seer/blob/d1ccf3359a46e7e841f4e40ad523aa7bd6178cc0/js/reposContainer.js#L15-L16)
+[in `reposContainer.js` on this line](https://github.com/jwngr/seer/blob/26c868d29c61ed04acf2a109c9fe901eb0443942/src/jsx/reposContainer.jsx#L365-L366)
 with your organization's username and your public GitHub access token.
 
 If you need a place to host your organization's Seer, check out [Firebase Hosting](https://www.firebase.com/hosting.html). You'll have your custom Seer up and running in just a couple minutes.
 
 
+## Security
+
+Only people who belong to your organization can view and edit ownership data about your repos. Unlike
+the repo data (i.e. open issues, pull requests, etc.) which is all public, ownership data is stored
+securely in Firebase and only visible to your coworkers. In addition, you can only assign ownership
+of a repo to someone if they belong to your organization.
+
+
 ## Contributing
-
-I will gladly accept pull requests for new features or bug fixes. There are two main things I'd like
-to improve:
-
-* __Pagination:__ The GitHub API only returns 100 repos at a time for an organization so if your
-organization has more than that, only the first 100 will be shown. For example, check out
-[GitHub Seer](https://seer.firebaseapp.com?org=github).
-
-* __Freshness Algorithm__: The freshness algorithm is pretty basic at the moment. It only
-looks at time since last update for the open issues. It completely ignores the number of open issues
-and pull requests as well as the time since last update for the open pull requests. I'm hoping
-someone want to implement a smarter algorithm for that!
 
 If you'd like to contribute to Seer, you'll need to run the following commands to get your
 environment set up:
@@ -61,4 +58,10 @@ $ gulp                  # build the distribution files
 and copy the source files when a change occurs. The output files are written to the `/dist/`
 directory.
 
-To view Seer locally, just navigate to `file:///path/to/seer/dist/index.html`.
+To view Seer locally, you can use Python to spin up a local server:
+
+```
+$ python -m SimpleHTTPServer
+```
+
+Then, navigate to http://localhost:8000/dist/index.html to view Seer.
