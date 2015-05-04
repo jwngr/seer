@@ -141,7 +141,16 @@ var Repo = React.createClass({
     var totalDaysSinceUpdated = 0;
     items.map(function(item) {
       var msSinceUpdated = (now - new Date(item.updated_at).getTime());
-      totalDaysSinceUpdated += (msSinceUpdated / msPerDay);
+      var hasEnhancementLabel = (item.labels||[]).find(function(label) {
+          return label.name === 'ehnacement';
+        }) !== undefined;
+      var addToTotal = (msSinceUpdated / msPerDay);
+
+      // for enhancements, count months instead of days
+      if( hasEnhancementLabel ) {
+        addToTotal = addToTotal / 30;
+      }
+      totalDaysSinceUpdated += addToTotal;
 
       // If the item has never been updated, give it a penalty
       if (item.updated_at === item.created_at) {
@@ -292,3 +301,26 @@ var Repo = React.createClass({
     }
   }
 });
+
+if (!Array.prototype.find) {
+  Array.prototype.find = function(predicate) {
+    if (this === null) {
+      throw new TypeError('Array.prototype.find called on null or undefined');
+    }
+    if (typeof predicate !== 'function') {
+      throw new TypeError('predicate must be a function');
+    }
+    var list = Object(this);
+    var length = list.length >>> 0;
+    var thisArg = arguments[1];
+    var value;
+
+    for (var i = 0; i < length; i++) {
+      value = list[i];
+      if (predicate.call(thisArg, value, i, list)) {
+        return value;
+      }
+    }
+    return undefined;
+  };
+}
