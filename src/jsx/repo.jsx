@@ -141,7 +141,16 @@ var Repo = React.createClass({
     var totalDaysSinceUpdated = 0;
     items.map(function(item) {
       var msSinceUpdated = (now - new Date(item.updated_at).getTime());
-      totalDaysSinceUpdated += (msSinceUpdated / msPerDay);
+      var hasEnhancementLabel = _.some(item.labels, function(label) {
+          return label.name === 'enhancement';
+        });
+      var addToTotal = (msSinceUpdated / msPerDay);
+
+      // for enhancements, count months instead of days
+      if( hasEnhancementLabel ) {
+        addToTotal = addToTotal / 30;
+      }
+      totalDaysSinceUpdated += addToTotal;
 
       // If the item has never been updated, give it a penalty
       if (item.updated_at === item.created_at) {
