@@ -141,9 +141,9 @@ var Repo = React.createClass({
     var totalDaysSinceUpdated = 0;
     items.map(function(item) {
       var msSinceUpdated = (now - new Date(item.updated_at).getTime());
-      var hasEnhancementLabel = (item.labels||[]).find(function(label) {
-          return label.name === 'ehnacement';
-        }) !== undefined;
+      var hasEnhancementLabel = _.some(item.labels, function(label) {
+          return label.name === 'enhancement';
+        });
       var addToTotal = (msSinceUpdated / msPerDay);
 
       // for enhancements, count months instead of days
@@ -301,26 +301,3 @@ var Repo = React.createClass({
     }
   }
 });
-
-if (!Array.prototype.find) {
-  Array.prototype.find = function(predicate) {
-    if (this === null) {
-      throw new TypeError('Array.prototype.find called on null or undefined');
-    }
-    if (typeof predicate !== 'function') {
-      throw new TypeError('predicate must be a function');
-    }
-    var list = Object(this);
-    var length = list.length >>> 0;
-    var thisArg = arguments[1];
-    var value;
-
-    for (var i = 0; i < length; i++) {
-      value = list[i];
-      if (predicate.call(thisArg, value, i, list)) {
-        return value;
-      }
-    }
-    return undefined;
-  };
-}
