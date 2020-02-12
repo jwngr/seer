@@ -1,3 +1,5 @@
+**THIS PROJECT IS ARCHIVED. IT IS NOT UNDER ACTIVE DEVELOPMENT. FEEL FREE TO FORK IT!**
+
 # Seer ![GitHub Seer Logo - Green Eye](./src/images/greenEye.ico)
 
 Seer is an open-source dashboard to help you manage your GitHub organization's public repositories.
